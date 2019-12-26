@@ -1,0 +1,33 @@
+version: '3'
+services:
+  prisma-graphql-server:
+    image: prismagraphql/prisma:1.34
+    restart: always
+    ports:
+    - "${PRISMA_PORT}:4466"
+    environment:
+      PRISMA_CONFIG: |
+        port: 4466
+        # uncomment the next line and provide the env var PRISMA_MANAGEMENT_API_SECRET=my-secret to activate cluster security
+        managementApiSecret: "${PRISMA_SECRET}"
+        databases:
+          default:
+            connector: mysql
+            host: "${DOCKER_DATABASE_HOSTNAME}"
+            user: "${DOCKER_DATABASE_USERNAME}"
+            password: "${DOCKER_DATABASE_PASSWORD}"
+            rawAccess: true
+            port: "${DOCKER_DATABASE_PORT}"
+            migrations: true
+            # database: "${PRISMA_DB_NAME}"
+  mysql-docker-instance:
+    image: mysql:5.7
+    restart: always
+    # Uncomment the next two lines to connect to your your database from outside the Docker environment, e.g. using a database GUI like Workbench
+    ports:
+    - "${DOCKER_DATABASE_PORT}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DOCKER_DATABASE_PASSWORD}"
+    volumes:
+      - ./.mysql:/var/lib/mysql
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
